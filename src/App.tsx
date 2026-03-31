@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
 
 const FullPageLoader = () => (
   <div className="flex h-screen items-center justify-center bg-slate-50">
@@ -26,45 +27,25 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const DashboardPlaceholder = () => {
-    const { user, logout } = useAuth();
-    return (
-        <div className="flex min-h-screen flex-col items-center justify-center space-y-4 bg-slate-50">
-            <h1 className="text-4xl font-bold text-slate-800">Welcome, {user?.name}!</h1>
-            <p className="text-slate-500">You have successfully breached the mainframe.</p>
-            <button 
-                onClick={logout} 
-                className="rounded-lg bg-red-500 px-6 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-600 shadow-md"
-            >
-                Secure Logout
-            </button>
-        </div>
-    );
-};
-
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        
+        {/* PUBLIC ROUTES */}
         <Route 
             path="/login" 
-            element={ 
-                <PublicRoute> 
-                    <Login /> 
-                </PublicRoute> 
-            } 
+            element={ <PublicRoute> <Login /> </PublicRoute> } 
         />
-
+        
+        {/* PROTECTED ROUTES - 2. Swap the placeholder for the real <Dashboard /> */}
         <Route 
             path="/dashboard" 
-            element={ 
-                <ProtectedRoute> 
-                    <DashboardPlaceholder /> 
-                </ProtectedRoute> 
-            } 
+            element={ <ProtectedRoute> <Dashboard /> </ProtectedRoute> } 
         />
 
+        {/* DEFAULT FALLBACK */}
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
         
       </Routes>
