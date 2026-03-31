@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Register from './pages/Register';
 
 const FullPageLoader = () => (
   <div className="flex h-screen items-center justify-center bg-slate-50">
@@ -34,6 +35,11 @@ function App() {
       <Routes>
         
         {/* PUBLIC ROUTES */}
+
+        <Route 
+            path="/register" 
+            element={ <PublicRoute> <Register /> </PublicRoute> } 
+        />
         <Route 
             path="/login" 
             element={ <PublicRoute> <Login /> </PublicRoute> } 

@@ -1,30 +1,39 @@
-import { useEffect, useState } from 'react';
-import { Trophy, Target, BookOpen, LogOut, Code2, AlertCircle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { 
+    Trophy, Target, BookOpen, LogOut, Code2, AlertCircle, 
+    Globe, Medal, Clock, CheckCircle2, TrendingUp
+} from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { StudentService } from '../services/endpoints';
 import type { StudentSummaryDTO } from '../types';
 
+// Helper function to safely parse MongoDB's weird timestamp objects
+const parseMongoDate = (mongoDate: any): string => {
+    if (!mongoDate) return 'Unknown Date';
+    if (typeof mongoDate === 'string') return new Date(mongoDate).toLocaleDateString();
+    if (mongoDate.$numberLong) return new Date(parseInt(mongoDate.$numberLong) * 1000).toLocaleDateString();
+    if (mongoDate.$date) return new Date(mongoDate.$date).toLocaleDateString();
+    return 'Invalid Date';
+};
+
 export default function Dashboard() {
     const { user, logout } = useAuth();
     const [dashboardData, setDashboardData] = useState<StudentSummaryDTO | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(''); // State to hold our error message
+    const [error, setError] = useState('');
 
     useEffect(() => {
         const fetchDashboard = async () => {
             try {
                 const response = await StudentService.getDashboard();
                 setDashboardData(response.data);
-            } catch (err) { // <-- NEW: Removed the ': any'
-                
-                // NEW: Strictly check if this is an error from our Spring Boot backend
+            } catch (err) {
                 if (axios.isAxiosError(err) && err.response?.data?.message) {
                     setError(err.response.data.message);
                 } else {
                     setError('Failed to load dashboard data.');
                 }
-                
             } finally {
                 setIsLoading(false);
             }
@@ -38,24 +47,34 @@ export default function Dashboard() {
             <div className="flex min-h-screen items-center justify-center bg-slate-50">
                 <div className="flex flex-col items-center space-y-4">
                     <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600"></div>
-                    <p className="text-slate-500 font-medium">Decrypting LeetCode stats...</p>
+                    <p className="font-medium text-slate-500">Decrypting LeetCode stats...</p>
                 </div>
             </div>
         );
     }
 
+    // Safely extract stats, prioritizing the raw MongoDB array, falling back to lightweight DTO fields
+    const totalSolved = dashboardData?.problemStats?.find(s => s.difficulty === 'All')?.count 
+                        || dashboardData?.totalSolved || 0;
+    
+    const rating = Math.round(dashboardData?.currentContestRating || dashboardData?.contestRating || 0);
+    
+    const easyStats = dashboardData?.problemStats?.find(s => s.difficulty === 'Easy');
+    const medStats = dashboardData?.problemStats?.find(s => s.difficulty === 'Medium');
+    const hardStats = dashboardData?.problemStats?.find(s => s.difficulty === 'Hard');
+
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-slate-50 pb-12">
             {/* Top Navigation Bar */}
             <nav className="border-b border-slate-200 bg-white px-6 py-4 shadow-sm">
-                <div className="mx-auto flex max-w-6xl items-center justify-between">
+                <div className="mx-auto flex max-w-7xl items-center justify-between">
                     <div className="flex items-center space-x-2">
                         <Code2 className="h-8 w-8 text-blue-600" />
                         <span className="text-xl font-bold text-slate-900">LeetTracker</span>
                     </div>
                     <div className="flex items-center space-x-6">
                         <span className="text-sm font-medium text-slate-600">
-                            Hello, {user?.name}
+                            Hello, {dashboardData?.name || user?.name}
                         </span>
                         <button
                             onClick={logout}
@@ -68,9 +87,8 @@ export default function Dashboard() {
                 </div>
             </nav>
 
-            <main className="mx-auto max-w-6xl p-6">
+            <main className="mx-auto mt-8 max-w-7xl px-6">
                 
-                {/* FIX: This is the Error Banner that uses the 'error' variable! */}
                 {error && (
                     <div className="mb-6 flex items-center space-x-3 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
                         <AlertCircle className="h-5 w-5" />
@@ -78,77 +96,189 @@ export default function Dashboard() {
                     </div>
                 )}
 
-                {/* Header Section */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-slate-900">Overview</h1>
-                    <p className="mt-1 text-slate-500">
-                        LeetCode ID: <span className="font-semibold text-slate-700">{dashboardData?.leetcodeUsername || 'N/A'}</span>
-                    </p>
-                </div>
-
-                {/* Stats Grid */}
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {/* Main Dashboard Layout */}
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                     
-                    {/* Stat Card 1: Total Solved */}
-                    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
-                        <div className="flex items-center justify-between">
-                            <div>
+                    {/* LEFT COLUMN: Profile & Core Stats */}
+                    <div className="lg:col-span-2 space-y-8">
+                        
+                        {/* Profile Header */}
+                        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h1 className="text-3xl font-bold text-slate-900">{dashboardData?.name}</h1>
+                                    <a 
+                                        href={`https://leetcode.com/${dashboardData?.leetcodeUsername}`} 
+                                        target="_blank" 
+                                        rel="noreferrer"
+                                        className="mt-1 flex items-center text-blue-600 hover:underline"
+                                    >
+                                        @{dashboardData?.leetcodeUsername}
+                                    </a>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-sm font-medium text-slate-500">Global Rank</p>
+                                    <p className="text-2xl font-bold text-slate-900">
+                                        {dashboardData?.rank ? `#${parseInt(dashboardData.rank).toLocaleString()}` : 'N/A'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Stats Grid */}
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                                 <p className="text-sm font-medium text-slate-500">Total Solved</p>
-                                <p className="mt-2 text-4xl font-bold text-slate-900">
-                                    {dashboardData?.totalSolved || 0}
-                                </p>
+                                <p className="mt-2 text-4xl font-bold text-slate-900">{totalSolved}</p>
                             </div>
-                            <div className="rounded-full bg-green-50 p-3">
-                                <Target className="h-8 w-8 text-green-600" />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Stat Card 2: Contest Rating */}
-                    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
-                        <div className="flex items-center justify-between">
-                            <div>
+                            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                                 <p className="text-sm font-medium text-slate-500">Contest Rating</p>
-                                <p className="mt-2 text-4xl font-bold text-slate-900">
-                                    {dashboardData?.contestRating || 0}
-                                </p>
+                                <p className="mt-2 text-4xl font-bold text-slate-900">{rating}</p>
                             </div>
-                            <div className="rounded-full bg-yellow-50 p-3">
-                                <Trophy className="h-8 w-8 text-yellow-600" />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Stat Card 3: Active Classrooms */}
-                    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-slate-500">Enrolled Classrooms</p>
+                            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                                <p className="text-sm font-medium text-slate-500">Classrooms</p>
                                 <p className="mt-2 text-4xl font-bold text-slate-900">
                                     {dashboardData?.classrooms?.length || 0}
                                 </p>
                             </div>
-                            <div className="rounded-full bg-blue-50 p-3">
-                                <BookOpen className="h-8 w-8 text-blue-600" />
+                        </div>
+
+                        {/* Problem Difficulty Breakdown */}
+                        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                <Target className="h-5 w-5 text-blue-600" /> Solved Breakdown
+                            </h2>
+                            <div className="space-y-4">
+                                {/* Easy */}
+                                <div>
+                                    <div className="flex justify-between text-sm mb-1">
+                                        <span className="font-medium text-green-600">Easy</span>
+                                        <span className="text-slate-600 font-medium">{easyStats?.count || 0} <span className="text-slate-400 font-normal">/ Beats {easyStats?.beatsPercentage}%</span></span>
+                                    </div>
+                                    <div className="w-full bg-slate-100 rounded-full h-2">
+                                        <div className="bg-green-500 h-2 rounded-full" style={{ width: `${Math.min((easyStats?.count || 0) / 3, 100)}%` }}></div>
+                                    </div>
+                                </div>
+                                {/* Medium */}
+                                <div>
+                                    <div className="flex justify-between text-sm mb-1">
+                                        <span className="font-medium text-yellow-500">Medium</span>
+                                        <span className="text-slate-600 font-medium">{medStats?.count || 0} <span className="text-slate-400 font-normal">/ Beats {medStats?.beatsPercentage}%</span></span>
+                                    </div>
+                                    <div className="w-full bg-slate-100 rounded-full h-2">
+                                        <div className="bg-yellow-400 h-2 rounded-full" style={{ width: `${Math.min((medStats?.count || 0) / 3, 100)}%` }}></div>
+                                    </div>
+                                </div>
+                                {/* Hard */}
+                                <div>
+                                    <div className="flex justify-between text-sm mb-1">
+                                        <span className="font-medium text-red-500">Hard</span>
+                                        <span className="text-slate-600 font-medium">{hardStats?.count || 0} <span className="text-slate-400 font-normal">/ Beats {hardStats?.beatsPercentage}%</span></span>
+                                    </div>
+                                    <div className="w-full bg-slate-100 rounded-full h-2">
+                                        <div className="bg-red-500 h-2 rounded-full" style={{ width: `${Math.min((hardStats?.count || 0), 100)}%` }}></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
+                        {/* Recent Submissions */}
+                        <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                            <div className="p-6 border-b border-slate-100">
+                                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                    <Clock className="h-5 w-5 text-blue-600" /> Recent Submissions
+                                </h2>
+                            </div>
+                            <div className="divide-y divide-slate-100">
+                                {dashboardData?.recentSubmissions?.map((sub, idx) => (
+                                    <a 
+                                        key={idx} 
+                                        href={sub.questionLink}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                                            <span className="font-medium text-slate-700">{sub.title}</span>
+                                        </div>
+                                        <span className="text-sm text-slate-400">
+                                            {parseMongoDate(sub.timestamp)}
+                                        </span>
+                                    </a>
+                                ))}
+                                {(!dashboardData?.recentSubmissions || dashboardData.recentSubmissions.length === 0) && (
+                                    <div className="p-6 text-center text-slate-500">No recent submissions found.</div>
+                                )}
+                            </div>
+                        </div>
+
+                    </div>
+
+                    {/* RIGHT COLUMN: Badges & Contests */}
+                    <div className="space-y-8">
+                        
+                        {/* Badges Section */}
+                        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                <Medal className="h-5 w-5 text-yellow-500" /> Earned Badges
+                            </h2>
+                            <div className="grid grid-cols-3 gap-4">
+                                {dashboardData?.badges?.map((badge, idx) => (
+                                    <div key={idx} className="flex flex-col items-center text-center group">
+                                        <div className="relative h-16 w-16 transition-transform group-hover:scale-110">
+                                            <img src={badge.icon} alt={badge.title} className="object-contain" />
+                                        </div>
+                                        <span className="mt-2 text-xs font-medium text-slate-600 line-clamp-2 leading-tight">
+                                            {badge.title}
+                                        </span>
+                                    </div>
+                                ))}
+                                {(!dashboardData?.badges || dashboardData.badges.length === 0) && (
+                                    <div className="col-span-3 text-center text-sm text-slate-500 py-4">
+                                        No badges earned yet.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Recent Contests */}
+                        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                <TrendingUp className="h-5 w-5 text-blue-600" /> Recent Contests
+                            </h2>
+                            <div className="space-y-4">
+                                {dashboardData?.contestHistory?.slice(0, 5).map((contest, idx) => (
+                                    <div key={idx} className="border-l-2 border-blue-500 pl-4 py-1">
+                                        <p className="font-semibold text-slate-800 text-sm">{contest.title}</p>
+                                        <div className="flex items-center gap-4 mt-1 text-xs text-slate-500">
+                                            <span>Rank: {contest.ranking}</span>
+                                            <span>Solved: {contest.problemsSolved}/{contest.totalProblems}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
-                {/* Classrooms Section */}
-                <div className="mt-12">
-                    <h2 className="mb-6 text-2xl font-bold text-slate-900">My Classrooms</h2>
+                {/* Classrooms Section (Full Width Bottom) */}
+                <div className="mt-8">
+                    <h2 className="mb-6 text-2xl font-bold text-slate-900 flex items-center gap-2">
+                        <BookOpen className="h-6 w-6 text-blue-600" /> My Classrooms
+                    </h2>
                     {dashboardData?.classrooms && dashboardData.classrooms.length > 0 ? (
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                             {dashboardData.classrooms.map((classroom) => (
                                 <div key={classroom.id} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                                     <h3 className="text-xl font-bold text-slate-900">{classroom.name}</h3>
-                                    <p className="mt-2 text-sm text-slate-500">{classroom.description}</p>
+                                    <p className="mt-2 text-sm text-slate-500 line-clamp-2">{classroom.description}</p>
                                     <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">
                                         <span className="text-sm font-medium text-slate-600">
-                                            {classroom.assignments?.length || 0} Pending Assignments
+                                            {classroom.assignments?.length || 0} Pending
                                         </span>
-                                        <button className="text-sm font-semibold text-blue-600 transition-colors hover:text-blue-500">
+                                        <button className="text-sm font-semibold text-blue-600 hover:text-blue-500">
                                             View Assignments &rarr;
                                         </button>
                                     </div>
@@ -156,8 +286,8 @@ export default function Dashboard() {
                             ))}
                         </div>
                     ) : (
-                        <div className="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 p-12 text-center">
-                            <BookOpen className="mx-auto h-12 w-12 text-slate-400" />
+                        <div className="rounded-xl border-2 border-dashed border-slate-200 bg-white p-12 text-center">
+                            <BookOpen className="mx-auto h-12 w-12 text-slate-300" />
                             <h3 className="mt-4 text-lg font-bold text-slate-900">No Classrooms Yet</h3>
                             <p className="mt-2 text-slate-500">You haven't been enrolled in any classrooms by a mentor.</p>
                         </div>
