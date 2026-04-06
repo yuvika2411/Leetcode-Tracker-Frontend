@@ -30,14 +30,12 @@ export default function MentorDashboard() {
     const [newClassName, setNewClassName] = useState('');
 
     const fetchDashboardData = async () => {
-        if (!user?.id) return; // Note: Ensure your AuthContext saves the user.id!
+        if (!user?.id) return; 
         setIsLoading(true);
         try {
-            // 1. Get the Mentor Profile to find their classroom IDs
             const profileRes = await MentorService.getProfile(user.id);
             const classroomIds = profileRes.data.classroomIds || [];
 
-            // 2. Fetch the Dashboard DTO for EVERY classroom they own
             const dashboardPromises = classroomIds.map((id: string) => 
                 ClassroomService.getDashboard(id, sortBy)
             );
@@ -47,7 +45,6 @@ export default function MentorDashboard() {
             
             setClassrooms(fetchedClassrooms);
             
-            // 3. Maintain the selected class, or pick the first one
             if (selectedClass) {
                 const updated = fetchedClassrooms.find(c => c.classroomId === selectedClass.classroomId);
                 setSelectedClass(updated || fetchedClassrooms[0] || null);
@@ -62,12 +59,10 @@ export default function MentorDashboard() {
         }
     };
 
-    // Refetch data when component mounts OR when the sort option changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         fetchDashboardData();
     }, [sortBy, user?.id]);
-
-    // --- Actions ---
 
     const handleCreateClassroom = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -122,8 +117,6 @@ export default function MentorDashboard() {
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col">
-            
-            {/* Navbar */}
             <nav className="border-b border-slate-200 bg-white px-6 py-4 shadow-sm z-10">
                 <div className="mx-auto flex max-w-7xl items-center justify-between">
                     <div className="flex items-center space-x-2">
@@ -141,8 +134,6 @@ export default function MentorDashboard() {
             </nav>
 
             <main className="flex-1 mx-auto w-full max-w-7xl flex overflow-hidden pt-8 px-6 gap-8 pb-12">
-                
-                {/* LEFT SIDEBAR: Classrooms List */}
                 <div className="w-80 shrink-0 flex flex-col gap-4">
                     <div className="flex items-center justify-between">
                         <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -167,8 +158,9 @@ export default function MentorDashboard() {
                                 <h3 className={`font-bold ${selectedClass?.classroomId === cls.classroomId ? 'text-white' : 'text-slate-900'}`}>
                                     {cls.className}
                                 </h3>
+                                {/* FIXED: enrolledStudents */}
                                 <p className={`text-sm mt-1 flex items-center gap-1 ${selectedClass?.classroomId === cls.classroomId ? 'text-blue-100' : 'text-slate-500'}`}>
-                                    <Users className="h-4 w-4" /> {cls.students?.length || 0} Students
+                                    <Users className="h-4 w-4" /> {cls.enrolledStudents?.length || 0} Students
                                 </p>
                             </button>
                         ))}
@@ -180,7 +172,6 @@ export default function MentorDashboard() {
                     </div>
                 </div>
 
-                {/* RIGHT MAIN: Classroom Details */}
                 <div className="flex-1 flex flex-col min-w-0">
                     {error && (
                         <div className="mb-6 flex items-center space-x-3 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
@@ -191,13 +182,12 @@ export default function MentorDashboard() {
 
                     {selectedClass ? (
                         <div className="space-y-6">
-                            
-                            {/* Class Header & Quick Actions */}
                             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
                                 <div>
                                     <h1 className="text-2xl font-bold text-slate-900">{selectedClass.className}</h1>
                                     <p className="text-slate-500 mt-1 flex items-center gap-4">
-                                        <span className="flex items-center gap-1"><Users className="h-4 w-4"/> {selectedClass.students?.length || 0} Enrolled</span>
+                                        {/* FIXED: enrolledStudents */}
+                                        <span className="flex items-center gap-1"><Users className="h-4 w-4"/> {selectedClass.enrolledStudents?.length || 0} Enrolled</span>
                                     </p>
                                 </div>
                                 <div className="flex gap-3">
@@ -216,7 +206,6 @@ export default function MentorDashboard() {
                                 </div>
                             </div>
 
-                            {/* Filters & Leaderboard */}
                             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
                                 <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                                     <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -226,7 +215,6 @@ export default function MentorDashboard() {
                                         <span className="text-sm font-medium text-slate-500 flex items-center gap-1">
                                             <Search className="h-4 w-4"/> Sort by:
                                         </span>
-                                        {/* Triggering Server-Side Sorting on change! */}
                                         <select 
                                             value={sortBy}
                                             onChange={(e) => setSortBy(e.target.value as 'consistency' | 'rating' | 'solved' | 'pending' | 'completed' | 'name')}
@@ -254,12 +242,25 @@ export default function MentorDashboard() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {selectedClass.students?.map((student: StudentSummaryDTO, index: number) => (
+                                            {/* FIXED: enrolledStudents */}
+                                            {selectedClass.enrolledStudents?.map((student: StudentSummaryDTO, index: number) => (
                                                 <tr key={student.id || index} className="bg-white border-b border-slate-100 hover:bg-slate-50 transition-colors">
                                                     <td className="px-6 py-4 font-medium text-slate-900 flex items-center gap-3">
-                                                        <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
-                                                            {index + 1}
-                                                        </div>
+                                                        {student.avatarUrl ? (
+                                                            <img 
+                                                                src={student.avatarUrl} 
+                                                                alt={student.name} 
+                                                                className="h-9 w-9 rounded-full object-cover border border-slate-200 shadow-sm"
+                                                                onError={(e) => {
+                                                                    // If the image fails to load, hide it so the fallback shows
+                                                                    (e.target as HTMLImageElement).style.display = 'none';
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <div className="h-9 w-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shadow-sm">
+                                                                {index + 1}
+                                                            </div>
+                                                        )}
                                                         <div>
                                                             <div className="font-bold">{student.name}</div>
                                                             <div className="text-xs text-slate-500 font-normal">@{student.leetcodeUsername}</div>
@@ -288,7 +289,8 @@ export default function MentorDashboard() {
                                                     </td>
                                                 </tr>
                                             ))}
-                                            {(!selectedClass.students || selectedClass.students.length === 0) && (
+                                            {/* FIXED: enrolledStudents */}
+                                            {(!selectedClass.enrolledStudents || selectedClass.enrolledStudents.length === 0) && (
                                                 <tr>
                                                     <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
                                                         No students in this classroom yet. Click "Add Student" to start.
@@ -310,9 +312,7 @@ export default function MentorDashboard() {
                 </div>
             </main>
 
-            {/* --- MODALS --- */}
-
-            {/* Create Class Modal */}
+            {/* MODALS */}
             {showCreateClass && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
@@ -337,7 +337,6 @@ export default function MentorDashboard() {
                 </div>
             )}
 
-            {/* Add Student Modal */}
             {showAddStudent && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
@@ -363,7 +362,6 @@ export default function MentorDashboard() {
                 </div>
             )}
 
-            {/* Assign Question Modal */}
             {showAddAssignment && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
@@ -396,13 +394,13 @@ export default function MentorDashboard() {
                                 </select>
                             </div>
                             <button type="submit" className="w-full bg-blue-600 text-white font-bold py-2.5 rounded-lg hover:bg-blue-500 mt-2">
-                                Dispatch to {selectedClass?.students?.length || 0} Students
+                                {/* FIXED: enrolledStudents */}
+                                Dispatch to {selectedClass?.enrolledStudents?.length || 0} Students
                             </button>
                         </form>
                     </div>
                 </div>
             )}
-
         </div>
     );
 }

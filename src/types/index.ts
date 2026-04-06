@@ -69,13 +69,13 @@ export interface ClassroomSummaryDTO {
     className: string;
     mentorId: string;
     studentIds: string[];
-    assignments: AssignmentDTO[];
+    assignments: AssignmentDTO[]; 
 }
 export interface ClassroomDashboardDTO {
     classroomId: string;
     className: string;
-    mentorId: string;
-    students: StudentSummaryDTO[];
+    mentorName: string;
+    enrolledStudents: StudentSummaryDTO[]; 
 }
 // --- The Master Student Object ---
 export interface StudentSummaryDTO {
@@ -102,6 +102,8 @@ export interface StudentSummaryDTO {
     consistencyStreak?: number;
     completedAssignments?: number;
     pendingAssignments?: number;
+    avatarUrl?: string;
+    manuallyCompletedAssignments?: string[];
 }
 // --- Request Payloads ---
 export interface LoginRequest {
