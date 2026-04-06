@@ -2,12 +2,13 @@ import { createContext, useEffect, useState, useContext } from "react";
 import type { LoginRequest } from "../types";
 import { AuthService } from "../services/endpoints";
 
-interface User{
+interface User {
     id: string;
     name: string;
+    role: string;
 }
 
-interface AuthContextType{
+interface AuthContextType {
     user: User | null;
     isAuthenticated: boolean;
     isLoading: boolean;
@@ -19,11 +20,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{children : React.ReactNode}> = ({children}) => {
     
-    const [user,setUser] = useState<User | null>(null);
-
-    // We start loading as 'true' so we don't accidentally flash the login screen
-    // to a user who is already logged in while we check their local storage.
-    const [isLoading,setIsLoading] = useState(true);
+    const [user, setUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         // When the app boots up, check if we already have a session saved
@@ -42,26 +40,33 @@ export const AuthProvider: React.FC<{children : React.ReactNode}> = ({children})
     },[]);
 
     const login = async (credentials: LoginRequest) => {
-        // 1. Hit the Spring Boot backend
-        const response  = await AuthService.login(credentials);
-        const {accessToken , mentorId , name} = response.data;
+        const response = await AuthService.login(credentials);
+        
+        // Extract the newly added 'role' from the backend response
+        const { accessToken, mentorId, name: userName, role: userRole } = response.data;
 
-        // 2. Save the Access Token for the Axios Interceptor
+        // Save EVERYTHING to localStorage
         localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('user', JSON.stringify({ 
+            id: mentorId, 
+            name: userName, 
+            role: userRole 
+        }));
 
-        //3. save the User data to Context State and Local Storage
-        const userData = {id: mentorId, name};
-        localStorage.setItem('user',JSON.stringify(userData));
-        setUser(userData);
+        // Update the React state
+        setUser({ id: mentorId, name: userName, role: userRole });
+        
+        // FIX 2: Removed the setIsAuthenticated line. 
+        // Because we called setUser above, !!user automatically evaluates to true!
     };
 
-    const logout =  async () => {
+    const logout = async () => {
         try{
             await AuthService.logout();
         } catch(error){
             console.error("Backend logout failed, forcing local logout", error); 
         } finally{
-            // 2. No matter what happens, wipe the frontend memory clean
+            // No matter what happens, wipe the frontend memory clean
             localStorage.removeItem('accessToken');
             localStorage.removeItem('user');
             setUser(null);
@@ -72,7 +77,7 @@ export const AuthProvider: React.FC<{children : React.ReactNode}> = ({children})
         <AuthContext.Provider
         value={{
             user,
-            isAuthenticated: !!user,
+            isAuthenticated: !!user, // <-- This dynamically evaluates to true when logged in
             isLoading,
             login,
             logout,
@@ -83,7 +88,8 @@ export const AuthProvider: React.FC<{children : React.ReactNode}> = ({children})
     );
 };
 
-// 5. Create a custom hook for easy access
+// FIX 3: Tell Vite's strict linter that it's okay to export a hook from this file
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (context === undefined) {

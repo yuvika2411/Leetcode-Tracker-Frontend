@@ -44,14 +44,14 @@ export default function Register() {
                 });
             }
 
-            // 2. Extract the AuthResponse DTO from the backend
-            const { accessToken, mentorId, name: userName } = response.data;
+            // 2. Extract the AuthResponse DTO from the backend (NOW WITH ROLE!)
+            const { accessToken, mentorId, name: userName, role: userRole } = response.data;
 
-            // 3. Save the tokens just like our AuthContext does
+            // 3. Save the tokens AND the role to local storage
             localStorage.setItem('accessToken', accessToken);
-            localStorage.setItem('user', JSON.stringify({ id: mentorId, name: userName }));
+            localStorage.setItem('user', JSON.stringify({ id: mentorId, name: userName, role: userRole }));
 
-            // 4. Force a hard reload to the dashboard so the AuthContext picks up the new local storage
+            // 4. Force a hard reload
             window.location.href = '/dashboard';
             
         } catch (err) {

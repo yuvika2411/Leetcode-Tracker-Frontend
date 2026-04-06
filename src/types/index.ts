@@ -2,10 +2,11 @@ export type Role = 'SUPER_ADMIN' | 'MENTOR' | 'STUDENT';
 
 export interface AuthResponse {
     accessToken: string;
+    refreshToken?: string;
     mentorId: string;
     name: string;
+    role: Role;
 }
-
 export interface ApiErrorResponse {
     timestamp: string;
     status: number;
