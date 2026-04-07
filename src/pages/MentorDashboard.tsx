@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 import { Badge } from '../components/ui/badge';
 import { LogOut, Plus, UserPlus, ClipboardList, Trophy, Flame, BookOpen, ChevronRight, Loader2, AlertCircle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '../components/ui/dialog';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { ScrollArea } from '../components/ui/scroll-area';
@@ -13,6 +13,9 @@ import { useAuth } from '../context/AuthContext';
 import { MentorService, ClassroomService } from '../services/endpoints';
 import axios from 'axios';
 import type { ClassroomDashboardDTO, StudentSummaryDTO } from '../types';
+import { Map, Trash2 } from 'lucide-react'; // 'Map' icon for paths
+import { PathService } from '../services/endpoints';
+import type { LearningPath, PathQuestion } from '../types';
 
 export function MentorDashboard() {
   const { user, logout } = useAuth();
@@ -30,6 +33,15 @@ export function MentorDashboard() {
   const [newStudentUsername, setNewStudentUsername] = useState('');
   const [assignmentData, setAssignmentData] = useState({ titleSlug: '', deadline: '3' });
 
+  const [learningPaths, setLearningPaths] = useState<LearningPath[]>([]);
+  const [assignPathOpen, setAssignPathOpen] = useState(false);
+  const [createPathOpen, setCreatePathOpen] = useState(false);
+  const [selectedPathId, setSelectedPathId] = useState<string>('');
+
+  // State for the "Create Path" form
+  const [newPath, setNewPath] = useState({ title: '', description: '' });
+  const [pathQuestions, setPathQuestions] = useState<PathQuestion[]>([{ titleSlug: '', daysToComplete: 3 }]);
+
   const fetchDashboardData = async () => {
     if (!user?.id) return; 
     setIsLoading(true);
@@ -39,6 +51,8 @@ export function MentorDashboard() {
         const dashboardPromises = classroomIds.map((id: string) => ClassroomService.getDashboard(id, sortBy));
         const dashboardResponses = await Promise.all(dashboardPromises);
         const fetchedClassrooms = dashboardResponses.map(res => res.data);
+        const pathsRes = await PathService.getMentorPaths(user.id);
+        setLearningPaths(pathsRes.data);
         setClassrooms(fetchedClassrooms);
         
         if (selectedClassroom) {
@@ -48,9 +62,7 @@ export function MentorDashboard() {
             setSelectedClassroom(fetchedClassrooms[0]);
         }
     } catch (err) {
-        console.log('====================================');
         console.log(err);
-        console.log('====================================');
         setError('Failed to load mentor dashboard.');
     } finally {
         setIsLoading(false);
@@ -91,6 +103,46 @@ export function MentorDashboard() {
         console.log(err);
         alert("Failed to assign question."); 
     }
+  };
+
+  const handleAddPathQuestion = () => {
+      setPathQuestions([...pathQuestions, { titleSlug: '', daysToComplete: 3 }]);
+  };
+
+  const handleRemovePathQuestion = (index: number) => {
+      setPathQuestions(pathQuestions.filter((_, i) => i !== index));
+  };
+
+  const handleCreatePath = async () => {
+      if (!user?.id) return;
+      try {
+          await PathService.createPath({
+              mentorId: user.id,
+              title: newPath.title,
+              description: newPath.description,
+              questions: pathQuestions
+          });
+          setCreatePathOpen(false);
+          setNewPath({ title: '', description: '' });
+          setPathQuestions([{ titleSlug: '', daysToComplete: 3 }]);
+          fetchDashboardData(); // Refresh the list
+      } catch (err) {
+        console.log(err); 
+        alert("Failed to create Learning Path."); 
+      }
+  };
+
+  const handleAssignPath = async () => {
+      if (!selectedClassroom || !selectedPathId) return;
+      try {
+          await PathService.assignPath(selectedPathId, selectedClassroom.classroomId);
+          setAssignPathOpen(false);
+          setSelectedPathId('');
+          fetchDashboardData(); // Refresh to show new assignments
+      } catch (err) {
+        console.log(err); 
+        alert("Failed to assign Learning Path."); 
+      }
   };
 
   if (isLoading && classrooms.length === 0) {
@@ -215,6 +267,109 @@ export function MentorDashboard() {
                       </div>
                     </div>
                     <DialogFooter><Button variant="outline" onClick={() => setAssignQuestionOpen(false)}>Cancel</Button><Button onClick={handleAssignQuestion}>Assign to All</Button></DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
+                {/* <-- NEW: Assign Path Dialog --> */}
+                <Dialog open={assignPathOpen} onOpenChange={setAssignPathOpen}>
+                  <DialogTrigger asChild>
+                      <Button className="bg-indigo-600 hover:bg-indigo-700">
+                          <Map className="w-4 h-4 mr-2" /> Assign Path
+                      </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Assign Learning Path</DialogTitle>
+                        <DialogDescription>Assign a pre-made roadmap of questions to this classroom.</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      {learningPaths.length === 0 ? (
+                          <div className="text-center p-4 bg-slate-50 rounded-lg">
+                              <p className="text-sm text-slate-500 mb-3">You haven't created any Learning Paths yet.</p>
+                              <Button variant="outline" onClick={() => { setAssignPathOpen(false); setCreatePathOpen(true); }}>
+                                  Create a Path First
+                              </Button>
+                          </div>
+                      ) : (
+                          <div className="space-y-2">
+                            <Label>Select a Path</Label>
+                            <Select value={selectedPathId} onValueChange={setSelectedPathId}>
+                              <SelectTrigger><SelectValue placeholder="Choose a roadmap..." /></SelectTrigger>
+                              <SelectContent>
+                                {learningPaths.map(path => (
+                                    <SelectItem key={path.id} value={path.id || ''}>
+                                        {path.title} ({path.questions.length} questions)
+                                    </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                      )}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setAssignPathOpen(false)}>Cancel</Button>
+                        <Button onClick={handleAssignPath} disabled={!selectedPathId}>Assign to All</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
+                {/* <-- NEW: Create Path Dialog (Hidden trigger, opened from the Assign modal or sidebar) --> */}
+                <Dialog open={createPathOpen} onOpenChange={setCreatePathOpen}>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Build a Learning Path</DialogTitle>
+                        <DialogDescription>Create a reusable template of LeetCode questions.</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label>Path Title</Label>
+                                <Input placeholder="e.g., Week 1: Arrays" value={newPath.title} onChange={e => setNewPath({...newPath, title: e.target.value})} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Description</Label>
+                                <Input placeholder="Basic array manipulation" value={newPath.description} onChange={e => setNewPath({...newPath, description: e.target.value})} />
+                            </div>
+                        </div>
+                        
+                        <div className="mt-6">
+                            <div className="flex items-center justify-between mb-2">
+                                <Label>Questions in this Path</Label>
+                                <Button type="button" variant="outline" size="sm" onClick={handleAddPathQuestion}>
+                                    <Plus className="w-3 h-3 mr-1" /> Add Question
+                                </Button>
+                            </div>
+                            <div className="space-y-3">
+                                {pathQuestions.map((q, idx) => (
+                                    <div key={idx} className="flex items-center gap-3 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                        <div className="flex-1 space-y-1">
+                                            <Label className="text-xs text-slate-500">LeetCode Slug</Label>
+                                            <Input placeholder="e.g., two-sum" value={q.titleSlug} onChange={e => {
+                                                const newQs = [...pathQuestions];
+                                                newQs[idx].titleSlug = e.target.value;
+                                                setPathQuestions(newQs);
+                                            }} />
+                                        </div>
+                                        <div className="w-32 space-y-1">
+                                            <Label className="text-xs text-slate-500">Days to complete</Label>
+                                            <Input type="number" min="1" value={q.daysToComplete} onChange={e => {
+                                                const newQs = [...pathQuestions];
+                                                newQs[idx].daysToComplete = parseInt(e.target.value) || 1;
+                                                setPathQuestions(newQs);
+                                            }} />
+                                        </div>
+                                        <Button variant="ghost" size="icon" className="mt-5 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => handleRemovePathQuestion(idx)} disabled={pathQuestions.length === 1}>
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setCreatePathOpen(false)}>Cancel</Button>
+                        <Button onClick={handleCreatePath} disabled={!newPath.title || !pathQuestions[0].titleSlug}>Save Learning Path</Button>
+                    </DialogFooter>
                   </DialogContent>
                 </Dialog>
               </div>

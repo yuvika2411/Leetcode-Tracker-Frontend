@@ -121,3 +121,16 @@ export interface MentorRegisterRequest {
 export interface StudentRegisterRequest extends MentorRegisterRequest {
     leetcodeUsername: string;
 }
+
+export interface PathQuestion {
+    titleSlug: string;
+    daysToComplete: number;
+}
+
+export interface LearningPath {
+    id?: string;
+    mentorId: string;
+    title: string;
+    description: string;
+    questions: PathQuestion[];
+}

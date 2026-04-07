@@ -4,7 +4,8 @@ import type {
     AuthResponse, 
     LoginRequest, 
     StudentRegisterRequest, 
-    MentorRegisterRequest 
+    MentorRegisterRequest, 
+    LearningPath
 } from '../types';
 
 export const AuthService = {
@@ -56,6 +57,13 @@ export const ClassroomService = {
             startTimestamp, 
             endTimestamp 
         }),
+};
+
+
+export const PathService = {
+    createPath: (path: LearningPath) => api.post('/paths', path),
+    getMentorPaths: (mentorId: string) => api.get(`/paths/mentor/${mentorId}`),
+    assignPath: (pathId: string, classroomId: string) => api.post(`/paths/${pathId}/assign/${classroomId}`)
 };
 
 
