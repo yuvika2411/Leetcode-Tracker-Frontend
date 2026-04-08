@@ -89,6 +89,12 @@ export function MentorActions({ mentorId, selectedClassroom, learningPaths, onRe
         }
     };
 
+    // NEW: Helper to swap from Assigning to Creating
+    const openCreateFromAssign = () => {
+        setAssignPathOpen(false);
+        setCreatePathOpen(true);
+    };
+
     return (
         <div className="flex flex-wrap gap-3">
             {/* 1. ADD STUDENT DIALOG */}
@@ -150,23 +156,42 @@ export function MentorActions({ mentorId, selectedClassroom, learningPaths, onRe
                     <DialogHeader><DialogTitle>Assign Learning Path</DialogTitle></DialogHeader>
                     <div className="space-y-4 py-4">
                         {learningPaths.length === 0 ? (
-                            <div className="text-center p-4 bg-slate-50 rounded-lg">
-                                <p className="text-sm text-slate-500 mb-3">No Learning Paths found.</p>
-                                <Button variant="outline" onClick={() => { setAssignPathOpen(false); setCreatePathOpen(true); }}>Create a Path First</Button>
+                            <div className="text-center p-6 bg-slate-50 rounded-lg border-2 border-dashed border-slate-200">
+                                <p className="text-sm text-slate-500 mb-4">You haven't built any roadmaps yet.</p>
+                                <Button onClick={openCreateFromAssign}>
+                                    <Plus className="w-4 h-4 mr-2" /> Create Your First Path
+                                </Button>
                             </div>
                         ) : (
-                            <div className="space-y-2">
-                                <Label>Select a Path</Label>
-                                <Select value={selectedPathId} onValueChange={setSelectedPathId}>
-                                    <SelectTrigger><SelectValue placeholder="Choose a roadmap..." /></SelectTrigger>
-                                    <SelectContent>
-                                        {learningPaths.map(path => <SelectItem key={path.id} value={path.id || ''}>{path.title}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label>Select an existing Path</Label>
+                                    <Select value={selectedPathId} onValueChange={setSelectedPathId}>
+                                        <SelectTrigger><SelectValue placeholder="Choose a roadmap..." /></SelectTrigger>
+                                        <SelectContent>
+                                            {learningPaths.map(path => <SelectItem key={path.id} value={path.id || ''}>{path.title}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                
+                                <div className="relative py-2">
+                                    <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+                                    <div className="relative flex justify-center text-xs uppercase">
+                                        <span className="bg-white px-2 text-slate-500 font-medium">Or</span>
+                                    </div>
+                                </div>
+
+                                <Button variant="outline" className="w-full border-indigo-200 text-indigo-600 hover:bg-indigo-50" onClick={openCreateFromAssign}>
+                                    <Plus className="w-4 h-4 mr-2" /> Create New Learning Path
+                                </Button>
                             </div>
                         )}
                     </div>
-                    <DialogFooter><Button onClick={handleAssignPath} disabled={!selectedPathId}>Assign to All</Button></DialogFooter>
+                    <DialogFooter>
+                        <Button onClick={handleAssignPath} disabled={!selectedPathId} className="w-full sm:w-auto">
+                            Assign to All Students
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
 
