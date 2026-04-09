@@ -6,23 +6,31 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { ScrollArea } from '../components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'; // <-- NEW: Import Tabs
 import { useAuth } from '../context/AuthContext';
 import { MentorService, ClassroomService, PathService } from '../services/endpoints';
-import type { ClassroomDashboardDTO, LearningPath } from '../types';
+import type { ClassroomDashboardDTO, LearningPath, ClassroomAnalyticsDTO } from '../types'; // <-- NEW: Added Analytics DTO
 
-// The Extracted Components
+// Extracted Components
 import { MentorActions } from '../components/dashboard/mentor/MentorActions';
 import { LeaderboardTable } from '../components/dashboard/mentor/LeaderboardTable';
+import { ClassroomAnalytics } from '../components/dashboard/mentor/ClassroomAnalytics'; // <-- NEW: Import Analytics Component
 
 export function MentorDashboard() {
   const { user, logout } = useAuth();
+  
+  // States
   const [classrooms, setClassrooms] = useState<ClassroomDashboardDTO[]>([]);
   const [selectedClassroom, setSelectedClassroom] = useState<ClassroomDashboardDTO | null>(null);
   const [learningPaths, setLearningPaths] = useState<LearningPath[]>([]);
+  const [analyticsData, setAnalyticsData] = useState<ClassroomAnalyticsDTO | null>(null); // <-- NEW: Analytics State
+  
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  
   const [sortBy, setSortBy] = useState('solved');
+  const [activeTab, setActiveTab] = useState('leaderboard'); // <-- NEW: Tab State
+  
+  // Dialog States
   const [createClassOpen, setCreateClassOpen] = useState(false);
   const [newClassName, setNewClassName] = useState('');
 
@@ -44,8 +52,16 @@ export function MentorDashboard() {
         if (selectedClassroom) {
             const updated = fetchedClassrooms.find(c => c.classroomId === selectedClassroom.classroomId);
             setSelectedClassroom(updated || fetchedClassrooms[0] || null);
+            
+            if (updated) {
+                const analyticsRes = await ClassroomService.getAnalytics(updated.classroomId);
+                setAnalyticsData(analyticsRes.data);
+            }
         } else if (fetchedClassrooms.length > 0) {
             setSelectedClassroom(fetchedClassrooms[0]);
+            
+            const analyticsRes = await ClassroomService.getAnalytics(fetchedClassrooms[0].classroomId);
+            setAnalyticsData(analyticsRes.data);
         }
     } catch (err) { 
       console.log(err);
@@ -54,8 +70,18 @@ export function MentorDashboard() {
     finally { setIsLoading(false); }
   };
 
+  // 1. Initial Load & Sort Changes
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchDashboardData(); }, [sortBy, user?.id]);
+
+  // 2. Fetch Analytics when a DIFFERENT classroom is clicked from the sidebar
+  useEffect(() => {
+      if (selectedClassroom?.classroomId) {
+          ClassroomService.getAnalytics(selectedClassroom.classroomId)
+              .then(res => setAnalyticsData(res.data))
+              .catch(err => console.error("Failed to load analytics", err));
+      }
+  }, [selectedClassroom?.classroomId]);
 
   const handleCreateClass = async () => {
     if (!user?.id) return;
@@ -86,7 +112,7 @@ export function MentorDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
-      {/* Sidebar logic remains clean and readable here */}
+      {/* SIDEBAR */}
       <aside className="w-72 bg-white border-r border-slate-200 flex flex-col z-10 shadow-sm">
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-center gap-3 mb-6">
@@ -130,23 +156,23 @@ export function MentorDashboard() {
               <p className="text-sm font-medium text-slate-900 truncate">{user?.name}</p>
               <p className="text-xs text-slate-500">Mentor</p>
             </div>
-            <Button variant="ghost" size="icon" onClick={logout}><LogOut className="w-4 h-4" /></Button>
+            <Button variant="ghost" size="icon" onClick={logout} className="hover:bg-red-50 hover:text-red-600"><LogOut className="w-4 h-4" /></Button>
           </div>
         </div>
       </aside>
 
+      {/* MAIN CONTENT */}
       <main className="flex-1 overflow-auto">
         {selectedClassroom ? (
           <div className="max-w-7xl mx-auto p-8">
             {error && <div className="mb-6 flex items-center space-x-3 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700"><AlertCircle className="h-5 w-5 shrink-0" /><p className="font-medium">{error}</p></div>}
 
-            <div className="mb-8 flex items-start justify-between">
+            <div className="mb-8 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
               <div>
                 <h1 className="text-3xl font-bold text-slate-900 mb-2">{selectedClassroom.className}</h1>
                 <div className="flex items-center gap-2 text-slate-600"><BookOpen className="w-4 h-4" /><span>{selectedClassroom.enrolledStudents?.length || 0} enrolled students</span></div>
               </div>
               
-              {/* COMPONENT: Mentor Actions */}
               <MentorActions 
                   mentorId={user!.id!} 
                   selectedClassroom={selectedClassroom} 
@@ -155,13 +181,31 @@ export function MentorDashboard() {
               />
             </div>
 
-            {/* COMPONENT: Leaderboard Table */}
-            <LeaderboardTable 
-                students={selectedClassroom.enrolledStudents} 
-                sortBy={sortBy} 
-                onSortChange={setSortBy} 
-                onExportCSV={handleExportCSV} 
-            />
+            {/* THE TABS: Switch between Leaderboard and Analytics */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="mb-6 bg-white border border-slate-200 p-1 shadow-sm rounded-lg">
+                    <TabsTrigger value="leaderboard" className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-md px-6">
+                        Class Leaderboard
+                    </TabsTrigger>
+                    <TabsTrigger value="analytics" className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-md px-6">
+                        Weakness & Analytics
+                    </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="leaderboard" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <LeaderboardTable 
+                        students={selectedClassroom.enrolledStudents} 
+                        sortBy={sortBy} 
+                        onSortChange={setSortBy} 
+                        onExportCSV={handleExportCSV} 
+                    />
+                </TabsContent>
+
+                <TabsContent value="analytics" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <ClassroomAnalytics data={analyticsData} />
+                </TabsContent>
+            </Tabs>
+
           </div>
         ) : (
           <div className="h-full flex items-center justify-center p-8">

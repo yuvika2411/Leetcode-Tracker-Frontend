@@ -134,3 +134,22 @@ export interface LearningPath {
     description: string;
     questions: PathQuestion[];
 }
+
+export interface SkillStat {
+    tagName: string;
+    problemsSolved: number;
+}
+
+export interface ClassroomAnalyticsDTO {
+    classroomId: string;
+    className: string;
+    totalStudents: number;
+    averageTotalSolved: number;
+    averageEasy: number;
+    averageMedium: number;
+    averageHard: number;
+    activeStudentsThisWeek: number;
+    classEngagementScore: number;
+    topStrengths: SkillStat[];
+    criticalWeaknesses: SkillStat[];
+}
