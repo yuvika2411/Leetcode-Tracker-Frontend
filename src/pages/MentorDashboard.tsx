@@ -9,13 +9,14 @@ import { ScrollArea } from '../components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { useAuth } from '../context/AuthContext';
 import { MentorService, ClassroomService, PathService } from '../services/endpoints';
-import type { ClassroomDashboardDTO, LearningPath, ClassroomAnalyticsDTO } from '../types';
+import type { ClassroomDashboardDTO, LearningPath, ClassroomAnalyticsDTO } from '@/types';
 
 // Extracted Components
 import { MentorActions } from '../components/dashboard/mentor/MentorActions';
 import { LeaderboardTable } from '../components/dashboard/mentor/LeaderboardTable';
 import { ClassroomAnalytics } from '../components/dashboard/mentor/ClassroomAnalytics';
-import { StudentDetailsDialog } from '../components/dashboard/mentor/StudentDetailsDialog';
+import { StudentDetailsView } from '@/components/dashboard/mentor/StudentDetailsView';
+
 
 export function MentorDashboard() {
   const { user, logout } = useAuth();
@@ -213,13 +214,12 @@ export function MentorDashboard() {
                 </TabsContent>
             </Tabs>
 
-            {/* THE MODAL: Deep dive into a specific student's profile */}
-            <StudentDetailsDialog 
-                username={viewingStudentUsername} 
-                open={!!viewingStudentUsername} 
-                onOpenChange={(open) => !open && setViewingStudentUsername(null)} 
-            />
-
+            {viewingStudentUsername && (
+              <StudentDetailsView 
+              username={viewingStudentUsername} 
+              onBack={() => setViewingStudentUsername(null)} 
+              />
+            )}
           </div>
         ) : (
           <div className="h-full flex items-center justify-center p-8">

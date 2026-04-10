@@ -104,6 +104,7 @@ export interface StudentSummaryDTO {
 
 // Add the Extended DTO that includes the progress history for the heatmap!
 export interface StudentExtendedDTO extends StudentSummaryDTO {
+    skills?: SkillStat[];
     progressHistory?: ProgressRecord[];
 }
 
@@ -152,4 +153,9 @@ export interface ClassroomAnalyticsDTO {
     classEngagementScore: number;
     topStrengths: SkillStat[];
     criticalWeaknesses: SkillStat[];
+}
+
+export interface SkillStat {
+    tagName: string;
+    problemsSolved: number;
 }
