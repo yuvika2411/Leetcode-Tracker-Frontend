@@ -55,10 +55,10 @@ export function StudentDetailsView({ username, onBack }: StudentDetailsViewProps
     };
 
     return (
-        <div className="fixed inset-0 z-50 bg-slate-50 flex flex-col overflow-y-auto animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 bg-slate-50 dark:bg-slate-950 flex flex-col overflow-y-auto animate-in fade-in duration-200 transition-colors">
             
             {/* 1. STICKY HEADER */}
-            <header className="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 md:px-8 py-4 flex items-center justify-between shadow-sm">
+            <header className="sticky top-0 z-20 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 md:px-8 py-4 flex items-center justify-between shadow-sm transition-colors duration-200">
                 <div className="flex items-center gap-4">
                     <Button 
                         variant="ghost" 
@@ -70,8 +70,8 @@ export function StudentDetailsView({ username, onBack }: StudentDetailsViewProps
                     </Button>
                     <div className="hidden sm:block h-8 w-px bg-slate-200 mx-2" />
                     <div>
-                        <h2 className="text-xl font-bold text-slate-900">Student Insight</h2>
-                        <p className="text-sm text-slate-500 hidden sm:block">Viewing LeetCode statistics for @{username}</p>
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-50">Student Insight</h2>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 hidden sm:block">Viewing LeetCode statistics for @{username}</p>
                     </div>
                 </div>
 
