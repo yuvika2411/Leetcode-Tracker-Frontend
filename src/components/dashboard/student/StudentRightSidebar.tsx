@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { Progress } from '../../ui/progress';
 import { ScrollArea } from '../../ui/scroll-area';
 import { Clock, CheckCircle2 } from 'lucide-react'; // Removed 'Award' since we removed the badges
-import type { StudentExtendedDTO } from '../../../types';
+import type { StudentExtendedDTO } from '@/types';
 
 export function StudentRightSidebar({ data, totalSolved }: { data: StudentExtendedDTO | null, totalSolved: number }) {
     const easyStats = data?.problemStats?.find(s => s.difficulty === 'Easy') || { count: 0, beatsPercentage: 0 };
