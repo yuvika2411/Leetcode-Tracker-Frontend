@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '../components/ui/button';
 import { Avatar, AvatarFallback } from '../components/ui/avatar';
-import {LogOut, Plus, Trophy, BookOpen, Loader2, AlertCircle, ShieldAlert, Badge} from 'lucide-react';
+import { LogOut, Plus, Terminal, BookOpen, Loader2, AlertCircle, ShieldAlert, Badge } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../components/ui/dialog';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -10,11 +10,13 @@ import { useAuth } from '../context/AuthContext';
 import { MentorService, ClassroomService, PathService } from '../services/endpoints';
 import type { ClassroomDashboardDTO, LearningPath, ClassroomAnalyticsDTO } from '@/types';
 
+
 import { MentorActions } from '../components/dashboard/mentor/MentorActions';
 import { LeaderboardTable } from '../components/dashboard/mentor/LeaderboardTable';
 import { ClassroomAnalytics } from '../components/dashboard/mentor/ClassroomAnalytics';
 import { StudentDetailsView } from '@/components/dashboard/mentor/StudentDetailsView';
-import {ThemeToggle} from "@/components/ui/ThemeToggle.tsx";
+import { ThemeToggle } from "@/components/ui/ThemeToggle.tsx";
+import {AdminOverview} from "@/pages/AdminOverview.tsx";
 
 export function MentorDashboard() {
     const { user, logout } = useAuth();
@@ -33,6 +35,7 @@ export function MentorDashboard() {
     const [createClassOpen, setCreateClassOpen] = useState(false);
     const [newClassName, setNewClassName] = useState('');
     const [viewingStudentUsername, setViewingStudentUsername] = useState<string | null>(null);
+    const [showAdminOverview, setShowAdminOverview] = useState(false); // Admin Toggle
 
     const fetchDashboardData = async () => {
         if (!user?.id) return;
@@ -104,7 +107,7 @@ export function MentorDashboard() {
             <aside className="w-72 bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 flex flex-col z-10 transition-colors duration-200">
                 <div className="p-6 border-b border-zinc-200 dark:border-zinc-800">
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="bg-[#2563eb] p-2 rounded-lg"><Trophy className="w-5 h-5 text-white" /></div>
+                        <div className="bg-[#2563eb] p-2 rounded-lg"><Terminal className="w-5 h-5 text-white" /></div>
                         <span className="text-xl font-semibold text-zinc-900 dark:text-white">LeetTracker</span>
                     </div>
 
@@ -126,14 +129,18 @@ export function MentorDashboard() {
                     <div className="p-4 space-y-2">
                         <p className="text-xs font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-wider px-2 mb-3">Your Classrooms</p>
                         {classrooms.map((c) => (
-                            <button key={c.classroomId} onClick={() => setSelectedClassroom(c)}
+                            <button key={c.classroomId}
+                                    onClick={() => {
+                                        setSelectedClassroom(c);
+                                        setShowAdminOverview(false); // Close admin view if opening a class
+                                    }}
                                     className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors flex justify-between items-center ${
-                                        selectedClassroom?.classroomId === c.classroomId
+                                        selectedClassroom?.classroomId === c.classroomId && !showAdminOverview
                                             ? 'bg-zinc-200/50 dark:bg-zinc-800/80 text-zinc-900 dark:text-white font-medium'
                                             : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/40'
                                     }`}>
                                 <span className="truncate">{c.className}</span>
-                                <Badge className={`border-transparent ${selectedClassroom?.classroomId === c.classroomId ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white' : 'bg-zinc-100 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400'}`}>
+                                <Badge className={`border-transparent ${selectedClassroom?.classroomId === c.classroomId && !showAdminOverview ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white' : 'bg-zinc-100 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400'}`}>
                                     {c.enrolledStudents?.length || 0}
                                 </Badge>
                             </button>
@@ -152,12 +159,22 @@ export function MentorDashboard() {
                                 <p className="text-xs text-zinc-500 dark:text-zinc-400">Mentor</p>
                             </div>
                         </div>
-                        <ThemeToggle /> {/* Added Theme Toggle directly to the user profile area */}
+                        <ThemeToggle />
                     </div>
 
-                    <button className="w-full flex items-center px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors">
-                        <ShieldAlert className="w-4 h-4 mr-2" /> Admin Overview
-                    </button>
+                    {user?.role === 'SUPER_ADMIN' && (
+                        <button
+                            onClick={() => {
+                                setShowAdminOverview(true);
+                                setSelectedClassroom(null); // Clear selected class to focus on admin view
+                            }}
+                            className={`w-full flex items-center px-3 py-2 text-sm rounded-lg transition-colors ${showAdminOverview ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 font-medium' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50'}`}
+                        >
+                            <ShieldAlert className="w-4 h-4 mr-2" /> Admin Overview
+                        </button>
+                    )}
+
+
                     <button onClick={logout} className="w-full flex items-center px-3 py-2 text-sm rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors text-rose-500 dark:text-rose-400 hover:text-rose-600 dark:hover:text-rose-300">
                         <LogOut className="w-4 h-4 mr-2" /> Sign Out
                     </button>
@@ -166,7 +183,13 @@ export function MentorDashboard() {
 
             {/* Main Content */}
             <main className="flex-1 overflow-auto relative">
-                {selectedClassroom ? (
+                {/* FIXED: The rendering logic correctly displays AdminOverview when true */}
+                {showAdminOverview ? (
+                    <AdminOverview onBack={() => {
+                        setShowAdminOverview(false);
+                        if (classrooms.length > 0) setSelectedClassroom(classrooms[0]);
+                    }} />
+                ) : selectedClassroom ? (
                     <div className="max-w-7xl mx-auto p-4 lg:p-8">
                         {error && <div className="mb-6 flex items-center space-x-3 rounded-lg border border-red-200 dark:border-rose-900/50 bg-red-50 dark:bg-rose-500/10 p-4 text-red-700 dark:text-rose-400"><AlertCircle className="h-5 w-5 shrink-0" /><p className="font-medium">{error}</p></div>}
 

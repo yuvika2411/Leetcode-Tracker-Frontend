@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Loader2, Trophy, LogOut, Activity } from 'lucide-react';
+import { Loader2, Terminal, LogOut, Activity } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 import { Button } from '../components/ui/button';
 import { useAuth } from '../context/AuthContext';
@@ -12,7 +12,7 @@ import { PendingAssignments } from '../components/dashboard/student/PendingAssig
 import { ClassroomList } from '../components/dashboard/student/ClassroomList';
 import { BadgesList } from '../components/dashboard/student/BadgesList';
 import { StudentRightSidebar } from '../components/dashboard/student/StudentRightSidebar';
-import {ThemeToggle} from "@/components/ui/ThemeToggle.tsx";
+import { ThemeToggle } from "@/components/ui/ThemeToggle.tsx";
 
 export function StudentDashboard() {
     const { logout, user } = useAuth();
@@ -83,7 +83,8 @@ export function StudentDashboard() {
             <header className="bg-white dark:bg-zinc-900/50 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 sticky top-0 z-10 shadow-sm transition-colors duration-200">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="bg-[#2563eb] p-2 rounded-lg"><Trophy className="w-5 h-5 text-white" /></div>
+                        {/* SWAPPED TROPHY FOR TERMINAL */}
+                        <div className="bg-[#2563eb] p-2 rounded-lg"><Terminal className="w-5 h-5 text-white" /></div>
                         <span className="text-xl font-bold text-zinc-900 dark:text-white">LeetTracker</span>
                     </div>
                     <div className="flex items-center gap-4">
@@ -92,7 +93,7 @@ export function StudentDashboard() {
                             <span>Sync Profile</span>
                         </Button>
 
-                        <ThemeToggle /> {/* Floating Toggle next to profile */}
+                        <ThemeToggle />
 
                         <div className="w-px h-6 bg-zinc-200 dark:bg-zinc-800 hidden sm:block mx-1" />
                         <div className="flex items-center gap-3">

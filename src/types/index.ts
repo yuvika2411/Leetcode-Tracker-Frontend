@@ -8,14 +8,6 @@ export interface AuthResponse {
     role: Role;
 }
 
-export interface ApiErrorResponse {
-    timestamp: string;
-    status: number;
-    error: string;
-    message: string;
-    path?: string;
-}
-
 export interface SocialMedia {
     github?: string;
     linkedin?: string;
@@ -23,7 +15,7 @@ export interface SocialMedia {
 }
 
 export interface ProgressRecord {
-    date: { $date: string } | string | number[]; 
+    date: { $date: string } | string | number[];
     questionSolved: number;
 }
 
@@ -75,11 +67,11 @@ export interface ClassroomDashboardDTO {
     classroomId: string;
     className: string;
     mentorName: string;
-    enrolledStudents: StudentSummaryDTO[]; 
+    enrolledStudents: StudentSummaryDTO[];
 }
 
 export interface StudentSummaryDTO {
-    id?: string; 
+    id?: string;
     name: string;
     email?: string;
     leetcodeUsername: string;
@@ -93,8 +85,8 @@ export interface StudentSummaryDTO {
     problemStats?: ProblemStats[];
     recentSubmissions?: RecentSubmission[];
     classrooms?: ClassroomSummaryDTO[];
-    totalSolved?: number; 
-    contestRating?: number; 
+    totalSolved?: number;
+    contestRating?: number;
     consistencyStreak?: number;
     completedAssignments?: number;
     pendingAssignments?: number;
@@ -102,7 +94,6 @@ export interface StudentSummaryDTO {
     manuallyCompletedAssignments?: string[];
 }
 
-// Add the Extended DTO that includes the progress history for the heatmap!
 export interface StudentExtendedDTO extends StudentSummaryDTO {
     skills?: SkillStat[];
     progressHistory?: ProgressRecord[];
@@ -155,7 +146,17 @@ export interface ClassroomAnalyticsDTO {
     criticalWeaknesses: SkillStat[];
 }
 
-export interface SkillStat {
-    tagName: string;
-    problemsSolved: number;
+export interface MentorDTO {
+    id: string;
+    name: string;
+    email: string;
+    classroomIds: string[];
+}
+
+export interface SystemOverviewDTO {
+    totalStudents: number;
+    totalMentors: number;
+    totalClassrooms: number;
+    allMentors: MentorDTO[];
+    allClassrooms: ClassroomDashboardDTO[];
 }
