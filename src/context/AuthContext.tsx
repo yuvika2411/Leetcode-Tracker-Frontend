@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState, useContext } from "react";
-import type { LoginRequest } from "../types";
+import type { LoginRequest, MentorRegisterRequest, StudentRegisterRequest } from "../types";
 import { AuthService } from "../services/endpoints";
 
 interface User {
@@ -13,18 +13,19 @@ interface AuthContextType {
     isAuthenticated: boolean;
     isLoading: boolean;
     login: (credentials: LoginRequest) => Promise<void>;
+    registerMentor: (data: MentorRegisterRequest) => Promise<void>;
+    registerStudent: (data: StudentRegisterRequest) => Promise<void>;
     logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{children : React.ReactNode}> = ({children}) => {
-    
+
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // When the app boots up, check if we already have a session saved
         const token = localStorage.getItem('accessToken');
         const storedUser = localStorage.getItem('user');
         if(token && storedUser){
@@ -35,38 +36,44 @@ export const AuthProvider: React.FC<{children : React.ReactNode}> = ({children})
                 localStorage.removeItem('user');
             }
         }
-        // Done checking, safe to render the app
         setIsLoading(false);
     },[]);
 
-    const login = async (credentials: LoginRequest) => {
-        const response = await AuthService.login(credentials);
-        
-        // Extract the newly added 'role' from the backend response
+    // Helper function to keep our code DRY!
+    const handleAuthSuccess = (response: any) => {
         const { accessToken, mentorId, name: userName, role: userRole } = response.data;
 
-        // Save EVERYTHING to localStorage
         localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('user', JSON.stringify({ 
-            id: mentorId, 
-            name: userName, 
-            role: userRole 
+        localStorage.setItem('user', JSON.stringify({
+            id: mentorId,
+            name: userName,
+            role: userRole
         }));
 
-        // Update the React state
         setUser({ id: mentorId, name: userName, role: userRole });
-        
-        // FIX 2: Removed the setIsAuthenticated line. 
-        // Because we called setUser above, !!user automatically evaluates to true!
+    };
+
+    const login = async (credentials: LoginRequest) => {
+        const response = await AuthService.login(credentials);
+        handleAuthSuccess(response);
+    };
+
+    const registerMentor = async (data: MentorRegisterRequest) => {
+        const response = await AuthService.registerMentor(data);
+        handleAuthSuccess(response);
+    };
+
+    const registerStudent = async (data: StudentRegisterRequest) => {
+        const response = await AuthService.registerStudent(data);
+        handleAuthSuccess(response);
     };
 
     const logout = async () => {
         try{
             await AuthService.logout();
         } catch(error){
-            console.error("Backend logout failed, forcing local logout", error); 
+            console.error("Backend logout failed", error);
         } finally{
-            // No matter what happens, wipe the frontend memory clean
             localStorage.removeItem('accessToken');
             localStorage.removeItem('user');
             setUser(null);
@@ -75,20 +82,21 @@ export const AuthProvider: React.FC<{children : React.ReactNode}> = ({children})
 
     return(
         <AuthContext.Provider
-        value={{
-            user,
-            isAuthenticated: !!user, // <-- This dynamically evaluates to true when logged in
-            isLoading,
-            login,
-            logout,
-        }}
+            value={{
+                user,
+                isAuthenticated: !!user,
+                isLoading,
+                login,
+                registerMentor,
+                registerStudent,
+                logout,
+            }}
         >
             {children}
         </AuthContext.Provider>
     );
 };
 
-// FIX 3: Tell Vite's strict linter that it's okay to export a hook from this file
 // eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
     const context = useContext(AuthContext);

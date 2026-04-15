@@ -6,17 +6,16 @@ import { Label } from '../components/ui/label';
 import { Card } from '../components/ui/card';
 import { Terminal, Activity, Target, Globe, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { AuthService } from '../services/endpoints';
 import axios from 'axios';
 
 export function AuthPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
 
   const [isLogin, setIsLogin] = useState(true);
   const [role, setRole] = useState<'student' | 'mentor'>('student');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const { login, registerMentor, registerStudent } = useAuth();
 
   const [formData, setFormData] = useState({
     name: '', email: '', password: '', leetcodeUsername: '',
@@ -29,21 +28,21 @@ export function AuthPage() {
     try {
       if (isLogin) {
         await login({ email: formData.email, password: formData.password });
-        navigate('/dashboard');
       } else {
-        let response;
         if (role === 'student') {
-          response = await AuthService.registerStudent(formData);
+          await registerStudent(formData);
         } else {
-          response = await AuthService.registerMentor({
+          await registerMentor({
             name: formData.name, email: formData.email, password: formData.password
           });
         }
-        const { accessToken, mentorId, name: userName, role: userRole } = response.data;
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('user', JSON.stringify({ id: mentorId, name: userName, role: userRole }));
-        window.location.href = '/dashboard';
       }
+
+      // Because we used AuthContext to update the state, React Router's
+      // <PublicRoute> in App.tsx will automatically teleport you to the dashboard!
+      // But we include navigate here as a safe fallback.
+      navigate('/dashboard');
+
     } catch (err) {
       setError(axios.isAxiosError(err) && err.response?.data?.message
           ? err.response.data.message
