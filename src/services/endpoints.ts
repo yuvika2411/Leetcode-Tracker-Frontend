@@ -67,5 +67,8 @@ export const PathService = {
 
 
 export const AdminService = {
-    getOverview: () => api.get('/admin/overview')
+    getOverview: () => api.get('/admin/overview'),
+    deleteMentor: (id: string) => api.delete(`/admin/mentors/${id}`),
+    deleteClassroom: (id: string) => api.delete(`/admin/classrooms/${id}`),
+    forceSyncAll: () => api.post('/admin/sync-all')
 };
