@@ -40,7 +40,12 @@ export const ClassroomService = {
     createClassroom: (mentorId: string, className: string) => api.post('/classrooms', null, { params: { mentorId, className } }),
     getDashboard: (classroomId: string, sortBy: string = 'solved') => api.get(`/classrooms/${classroomId}/dashboard`, { params: { sortBy } }),
     addStudent: (classroomId: string, leetcodeUsername: string) => api.post(`/classrooms/${classroomId}/students`, null, { params: { leetcodeUsername } }),
-    assignQuestion: (classroomId: string, titleSlug: string, start: number, end: number) => api.post(`/classrooms/${classroomId}/assignments`, null, { params: { titleSlug, startTimestamp: start, endTimestamp: end } }),
+    assignQuestion: (classroomId: string, titleSlug: string, start: number, end: number) =>
+        api.post(`/classrooms/${classroomId}/assignments`, {
+            titleSlug: titleSlug,
+            startTimestamp: start,
+            endTimestamp: end
+        }),
     getAnalytics: (classroomId: string) => api.get(`/classrooms/${classroomId}/analytics`),
     
     // Upload CSV 
