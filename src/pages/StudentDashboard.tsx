@@ -13,6 +13,7 @@ import { ClassroomList } from '../components/dashboard/student/ClassroomList';
 import { BadgesList } from '../components/dashboard/student/BadgesList';
 import { StudentRightSidebar } from '../components/dashboard/student/StudentRightSidebar';
 import { ThemeToggle } from "@/components/ui/ThemeToggle.tsx";
+import {useClassroomWebSocket} from "@/hooks/useClassroomWebSocket.ts";
 
 export function StudentDashboard() {
     const { logout, user } = useAuth();
@@ -28,6 +29,12 @@ export function StudentDashboard() {
         } catch (err) { console.error('Failed to load dashboard', err); }
         finally { setIsLoading(false); }
     };
+
+    // When a ping is received, it calls fetchDashboardData to silently update the UI.
+    useClassroomWebSocket(selectedClassroomId, () => {
+        console.log("Auto-refreshing Student Dashboard...");
+        fetchDashboard();
+    });
 
     useEffect(() => { void fetchDashboard(); }, []);
 

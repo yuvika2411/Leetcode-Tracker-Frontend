@@ -17,6 +17,7 @@ import { ClassroomAnalytics } from '../components/dashboard/mentor/ClassroomAnal
 import { StudentDetailsView } from '@/components/dashboard/mentor/StudentDetailsView';
 import { ThemeToggle } from "@/components/ui/ThemeToggle.tsx";
 import {AdminOverview} from "@/pages/AdminOverview.tsx";
+import {useClassroomWebSocket} from "@/hooks/useClassroomWebSocket.ts";
 
 export function MentorDashboard() {
     const { user, logout } = useAuth();
@@ -36,6 +37,12 @@ export function MentorDashboard() {
     const [newClassName, setNewClassName] = useState('');
     const [viewingStudentUsername, setViewingStudentUsername] = useState<string | null>(null);
     const [showAdminOverview, setShowAdminOverview] = useState(false); // Admin Toggle
+
+    // When a ping is received, it calls fetchDashboardData to silently update the UI.
+    useClassroomWebSocket(selectedClassroom?.classroomId, () => {
+        console.log("Auto-refreshing Mentor Dashboard...");
+        fetchDashboardData();
+    });
 
     const fetchDashboardData = async () => {
         if (!user?.id) return;
