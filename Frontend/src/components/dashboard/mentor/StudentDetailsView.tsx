@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'; // <-- Add useEffect here
 import { Button } from '../../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { Progress } from '../../ui/progress';
@@ -28,6 +28,20 @@ export function StudentDetailsView({ username, onBack }: StudentDetailsViewProps
     const [data, setData] = useState<StudentExtendedDTO | null>(null);
     const [loading, setLoading] = useState(true);
 
+    // --- NEW: Add Escape Key Listener ---
+    useEffect(() => {
+        const handleEsc = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                onBack();
+            }
+        };
+        window.addEventListener('keydown', handleEsc);
+
+        // Cleanup the event listener when the component unmounts
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, [onBack]);
+    // ------------------------------------
+
     useEffect(() => {
         const fetchStudentProfile = async () => {
             setLoading(true);
@@ -48,7 +62,6 @@ export function StudentDetailsView({ username, onBack }: StudentDetailsViewProps
     const hardCount = data?.problemStats?.find(s => s.difficulty === 'Hard')?.count || 0;
     const totalSolved = (easyCount + medCount + hardCount) || 1;
 
-    // Fixed TS6133: We will now use this rating variable in the banner below!
     const rating = Math.round(data?.currentContestRating || 0);
 
     const formatDate = (ts: number | string) => {
@@ -74,16 +87,25 @@ export function StudentDetailsView({ username, onBack }: StudentDetailsViewProps
     return (
         <div className="fixed inset-0 z-50 bg-[#0a0a0a] flex flex-col overflow-y-auto animate-in fade-in duration-300">
             {/* Unique dot grid texture background */}
-            <div className="absolute inset-0 bg-[radial-gradient(#333_1px,transparent_1px)] bg-[size:24px_24px] opacity-40 pointer-events-none fixed"></div>
-            
-            {/* Subtle ambient glow behind content */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#5b4fff] opacity-[0.05] blur-[120px] rounded-full pointer-events-none fixed"></div>
+            <div className="absolute inset-0 bg-[radial-gradient(#333_1px,transparent_1px)] bg-size-[24px_24px] opacity-40 pointer-events-none"></div>
 
-            {/* Header */}
-            <header className="sticky top-0 z-20 bg-[#111111]/80 backdrop-blur-xl border-b border-zinc-800/60 px-4 md:px-8 py-4 flex items-center justify-between shadow-lg">
-                <Button variant="ghost" onClick={onBack} className="text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-colors rounded-xl">
-                    <ArrowLeft className="h-5 w-5 mr-2" /> Back to Dashboard
-                </Button>
+            {/* Subtle ambient glow behind content */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-200 h-100 bg-[#5b4fff] opacity-[0.05] blur-[120px] rounded-full pointer-events-none"></div>
+
+            {/* --- UPDATED HEADER: More prominent Back Button --- */}
+            <header className="sticky top-0 z-50 bg-[#111111]/90 backdrop-blur-xl border-b border-zinc-800/60 px-4 md:px-8 py-4 flex items-center justify-between shadow-lg">
+                <div className="flex items-center gap-4 ml-75">
+                    <Button
+                        variant="outline"
+                        onClick={onBack}
+                        className="bg-[#1a1b2e] border-zinc-700 text-white hover:bg-zinc-800 hover:border-zinc-600 transition-all rounded-xl shadow-sm"
+                    >
+                        <ArrowLeft className="h-4 w-4 mr-2" /> Back to Classroom
+                    </Button>
+                    <span className="hidden sm:inline text-sm text-zinc-500 font-medium">
+                        Press <kbd className="bg-zinc-800 px-2 py-0.5 rounded-md text-zinc-300 font-mono text-xs mx-1">Esc</kbd> to close
+                    </span>
+                </div>
             </header>
 
             <main className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 space-y-6 relative z-10">
