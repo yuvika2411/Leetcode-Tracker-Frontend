@@ -1,0 +1,86 @@
+name: Report CI Failure
+
+on:
+  workflow_call:
+    inputs:
+      check_type:
+        description: '"Lint" or "Build"'
+        required: true
+        type: string
+      failed_jobs:
+        description: Comma-separated list of failed job names
+        required: true
+        type: string
+      pr_number:
+        description: Pull request number
+        required: true
+        type: string
+      pr_title:
+        description: Pull request title
+        required: true
+        type: string
+      head_ref:
+        description: Source branch name
+        required: true
+        type: string
+      base_ref:
+        description: Target branch name
+        required: true
+        type: string
+      run_id:
+        description: Workflow run ID
+        required: true
+        type: string
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  create-issue-and-comment:
+    name: Create Issue and Link to PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Render issue body from template
+        id: render
+        env:
+          CHECK_TYPE: ${{ inputs.check_type }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          PR_TITLE: ${{ inputs.pr_title }}
+          HEAD_REF: ${{ inputs.head_ref }}
+          BASE_REF: ${{ inputs.base_ref }}
+          FAILED_JOBS: ${{ inputs.failed_jobs }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ inputs.run_id }}
+        run: |
+          body=$(envsubst < .github/ci-templates/failure_body.md)
+          {
+            echo "body<<EOF"
+            echo "$body"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub issue
+        id: create-issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          issue_url=$(gh issue create \
+            --repo "${{ github.repository }}" \
+            --title "${{ inputs.check_type }} failure on PR #${{ inputs.pr_number }}: ${{ inputs.failed_jobs }}" \
+            --body "${{ steps.render.outputs.body }}" \
+            --label "ci-failure")
+          echo "issue_url=$issue_url" >> "$GITHUB_OUTPUT"
+
+      - name: Comment on PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment ${{ inputs.pr_number }} \
+            --repo "${{ github.repository }}" \
+            --body "**${{ inputs.check_type }} check failed** for: \`${{ inputs.failed_jobs }}\`
+
+          Tracking issue: ${{ steps.create-issue.outputs.issue_url }}
+          Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ inputs.run_id }}"
