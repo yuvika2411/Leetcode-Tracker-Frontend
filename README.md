@@ -1,73 +1,138 @@
-# React + TypeScript + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-Currently, two official plugins are available:
+# 🚀 LeetCode Tracker LMS
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+A robust, two-sided Learning Management System designed for educators and students to seamlessly track LeetCode progress, manage classroom assignments, and view dynamic leaderboards.
 
-## React Compiler
+This platform automates the tracking of coding assignments by integrating directly with LeetCode APIs, eliminating manual grading while providing a gamified experience for students.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## ✨ Features
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+* **Role-Based Access Control**
+  Distinct dashboards and permissions for Super Admins, Mentors, and Students.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+* **Enterprise Security**
+  Stateless JWT authentication with short-lived access tokens and secure HTTP-only refresh tokens.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+* **OAuth2 Integration**
+  Seamless **Login with Google** for quick onboarding.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+* **Automated LeetCode Sync**
+  Fetches solved problems, contest ratings, badges, and submissions instantly.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+* **Classroom Management**
+  Mentors can create classrooms, enroll students, and assign problems with deadlines.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+* **Dynamic Leaderboards**
+  Real-time rankings based on streaks, ratings, and assignments.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+* **Submission Validation**
+  Regex + API-based verification to ensure genuine submissions.
+
+---
+
+## 🛠 Tech Stack
+
+### Backend
+
+* Java 17+
+* Spring Boot 3
+* Spring Security (JWT + OAuth2)
+* MongoDB (Spring Data MongoDB)
+* Maven
+
+### Frontend
+
+* React 18
+* TypeScript
+* Vite (SWC)
+* Tailwind CSS v4
+* React Router DOM
+* Axios
+
+---
+
+## ⚙️ Prerequisites
+
+* Java Development Kit (JDK) 17 or higher
+* Node.js (v18+) and npm
+* MongoDB (local on port 27017 or Atlas URI)
+
+---
+
+## 🚀 Local Setup & Installation
+
+> This repository contains both frontend and backend
+
+---
+
+### Backend Setup
+
+1. Navigate to backend:
+
+   ```bash
+   cd backend
+   ```
+
+2. Configure environment variables:
+
+   ```
+   MONGO_URI=mongodb://localhost:27017/LeetcodeTracker
+   JWT_SECRET=your_secret_key
+   GOOGLE_CLIENT_ID=your_google_client_id
+   GOOGLE_CLIENT_SECRET=your_google_client_secret
+   ```
+
+3. Run backend:
+
+   ```bash
+   ./mvnw spring-boot:run
+   ```
+
+---
+
+### Frontend Setup
+
+1. Navigate to frontend:
+
+   ```bash
+   cd frontend
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Run frontend:
+
+   ```bash
+   npm run dev
+   ```
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a branch:
+
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+3. Commit changes:
+
+   ```bash
+   git commit -m "Add your feature"
+   ```
+4. Push:
+
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+5. Open Pull Request
+
+---
