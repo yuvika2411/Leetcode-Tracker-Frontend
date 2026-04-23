@@ -1,6 +1,4 @@
-Got it 👍 — **clean + professional README with *minimal icons*** (sirf headings pe, overuse nahi). Yeh version GitHub pe perfect lagega 👇
 
----
 
 # 🚀 LeetCode Tracker LMS
 
