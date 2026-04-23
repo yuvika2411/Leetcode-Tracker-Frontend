@@ -14,7 +14,7 @@ export function useClassroomWebSocket(
         // 1. Configure the STOMP Client
         const client = new Client({
             // We use SockJS as the transport mechanism to match Spring Boot's config
-            webSocketFactory: () => new SockJS('http://localhost:8080/ws-endpoint'),
+            webSocketFactory: () => new SockJS('https://3pkx5862-8080.inc1.devtunnels.ms/ws-endpoint'),
             reconnectDelay: 5000,
             heartbeatIncoming: 4000,
             heartbeatOutgoing: 4000,
