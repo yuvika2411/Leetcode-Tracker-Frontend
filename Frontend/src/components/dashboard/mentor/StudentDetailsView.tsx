@@ -41,7 +41,7 @@ export function StudentDetailsView({ username, onBack }: StudentDetailsViewProps
         return () => window.removeEventListener('keydown', handleEsc);
     }, [onBack]);
 
-    // ------------------------------------
+    // -----------------------------------
 
     useEffect(() => {
         const fetchStudentProfile = async () => {
