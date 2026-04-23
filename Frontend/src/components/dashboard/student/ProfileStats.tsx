@@ -56,7 +56,7 @@ export function ProfileStats({ data, totalSolved, rating }: ProfileStatsProps) {
  
  <div className="inline-flex items-center gap-2 bg-[#1a1b2e]/60 border border-[#5b4fff]/20 px-4 py-2 rounded-full">
  <Flame className="w-4 h-4 text-orange-500" />
- <span className="text-sm font-bold text-white"><span className="text-orange-400">{data.consistencyStreak || 0}</span>&nbsp;Day Streak</span>
+ <span className="text-sm font-bold text-white"><span className="text-orange-400 mr-1.5">{data.consistencyStreak || 0}</span>Day Streak</span>
  </div>
  </div>
 

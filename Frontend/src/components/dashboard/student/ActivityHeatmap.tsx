@@ -1,6 +1,5 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../ui/tooltip';
-import { Target } from 'lucide-react';
 import type { ProgressRecord } from '@/types';
 
 const getIntensityColor = (count: number) => {
@@ -63,9 +62,9 @@ export function ActivityHeatmap({ progressHistory = [], consistencyStreak = 0 }:
  </div>
  </CardHeader>
  <CardContent>
- <div className="overflow-x-auto pb-4">
+ <div className="overflow-x-auto pb-4 custom-scrollbar" dir="rtl">
  <TooltipProvider>
- <div className="inline-grid grid-flow-col gap-1"style={{ gridTemplateRows: 'repeat(7, 1fr)' }}>
+ <div className="inline-grid grid-flow-col gap-1" style={{ gridTemplateRows: 'repeat(7, 1fr)' }} dir="ltr">
  {heatmapDays.map((day, index) => (
  <Tooltip key={index}>
  <TooltipTrigger asChild>
