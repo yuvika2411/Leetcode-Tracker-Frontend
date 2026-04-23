@@ -15,18 +15,18 @@ const generateHeatmapDays = (progressHistory: ProgressRecord[]) => {
  const today = new Date();
  const progressMap: Record<string, number> = {};
 
- progressHistory?.forEach(record => {
- let dateKey ="";
- if (Array.isArray(record.date)) {
- const [y, m, d] = record.date;
- dateKey = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
- } else if (typeof record.date === 'object' && record.date !== null && '$date' in record.date) {
- dateKey = String((record.date as any).$date).substring(0, 10);
- } else if (typeof record.date === 'string') {
- dateKey = record.date.substring(0, 10);
- }
- if (dateKey) progressMap[dateKey] = record.questionSolved || 0;
- });
+    progressHistory?.forEach(record => {
+        let dateKey = "";
+        if (Array.isArray(record.date)) {
+            const [y, m, d] = record.date;
+            dateKey = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        } else if (typeof record.date === 'object' && record.date !== null && '$date' in record.date) {
+            dateKey = String((record.date as { $date: string }).$date).substring(0, 10);
+        } else if (typeof record.date === 'string') {
+            dateKey = record.date.substring(0, 10);
+        }
+        if (dateKey) progressMap[dateKey] = record.questionSolved || 0;
+    });
 
  for (let i = 363; i >= 0; i--) {
  const d = new Date();

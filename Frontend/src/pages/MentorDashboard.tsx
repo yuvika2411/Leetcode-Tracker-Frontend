@@ -14,6 +14,7 @@ import { MentorActions } from '../components/dashboard/mentor/MentorActions';
 import { LeaderboardTable } from '../components/dashboard/mentor/LeaderboardTable';
 import { ClassroomAnalytics } from '../components/dashboard/mentor/ClassroomAnalytics';
 import { StudentDetailsView } from '@/components/dashboard/mentor/StudentDetailsView';
+
 import { AdminOverview } from "@/pages/AdminOverview.tsx";
 import { useClassroomWebSocket } from "@/hooks/useClassroomWebSocket.ts";
 
@@ -75,6 +76,7 @@ export function MentorDashboard() {
         } finally { setIsLoading(false); }
     };
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => { void fetchDashboardData(); }, [sortBy, user?.id]);
 
     useEffect(() => {
@@ -90,7 +92,7 @@ export function MentorDashboard() {
         try {
             await ClassroomService.createClassroom(user.id, newClassName);
             setCreateClassOpen(false); setNewClassName(''); await fetchDashboardData();
-        } catch (err) { alert("Failed to create class."); }
+        } catch { alert("Failed to create class."); }
     };
 
     const handleExportCSV = async () => {
@@ -101,7 +103,7 @@ export function MentorDashboard() {
             const link = document.createElement('a');
             link.href = url; link.setAttribute('download', `${selectedClassroom.className.replace(/\s+/g, '_')}_Leaderboard.csv`);
             document.body.appendChild(link); link.click(); link.remove();
-        } catch (err) { alert("Failed to export CSV."); }
+        } catch { alert("Failed to export CSV."); }
     };
 
     if (isLoading && classrooms.length === 0) return <div className="flex h-screen items-center justify-center bg-[#09090e]"><Loader2 className="w-10 h-10 animate-spin text-[#5b4fff]" /></div>;
