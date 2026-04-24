@@ -95,6 +95,9 @@ export function StudentDashboard() {
                         <span className="text-xl font-bold text-zinc-900 dark:text-white">LeetTracker</span>
                     </div>
                     <div className="flex items-center gap-4">
+                        <a href="/contact" className="hidden sm:flex text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">
+                            Contact Us
+                        </a>
                         <Button variant="outline" className="hidden sm:flex border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800" onClick={handleSync} disabled={isSyncing}>
                             {isSyncing ? <Loader2 className="w-4 h-4 mr-2 animate-spin text-zinc-500" /> : <Activity className="w-4 h-4 mr-2 text-zinc-500 dark:text-zinc-400" />}
                             <span>Sync Profile</span>
