@@ -85,7 +85,7 @@ export function StudentDashboard() {
     });
 
     return (
-        <div className="min-h-screen bg-zinc-50 dark:bg-[#09090B] pb-12 transition-colors duration-200">
+        <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-[#09090B] transition-colors duration-200">
 
             <header className="bg-white dark:bg-zinc-900/50 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 sticky top-0 z-10 shadow-sm transition-colors duration-200">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
@@ -136,6 +136,13 @@ export function StudentDashboard() {
                     </div>
                 </div>
             </main>
+
+            {/* Footer with Contact Us */}
+            <footer className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 border-t border-zinc-200 dark:border-zinc-800 mt-auto flex justify-center">
+                <a href="/contact" className="text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-[#5b4fff] transition-colors">
+                    Need Help? Contact Us
+                </a>
+            </footer>
         </div>
     );
 }
