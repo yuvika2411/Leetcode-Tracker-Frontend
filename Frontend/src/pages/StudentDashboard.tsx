@@ -91,7 +91,10 @@ export function StudentDashboard() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         {/* SWAPPED TROPHY FOR TERMINAL */}
-                        <div className="bg-[#2563eb] p-2 rounded-lg"><Terminal className="w-5 h-5 text-white" /></div>
+                        {/* <div className="bg-[#2563eb] p-2 rounded-lg"><Terminal className="w-5 h-5 text-white" /></div> */}
+                         <div className="bg-[#5b4fff] p-2 rounded-xl flex items-center justify-center shadow-lg">
+                            <Terminal className="w-5 h-5 text-white" strokeWidth={2.5} />
+                        </div>
                         <span className="text-xl font-bold text-zinc-900 dark:text-white">LeetTracker</span>
                     </div>
                     <div className="flex items-center gap-4">
