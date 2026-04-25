@@ -17,6 +17,7 @@ export function AdminOverview({ onBack }: { onBack: () => void }) {
     const [error, setError] = useState('');
 
     // Action States
+
     const [isSyncing, setIsSyncing] = useState(false);
     const [deletingMentor, setDeletingMentor] = useState<MentorDTO | null>(null);
     const [deletingClassroom, setDeletingClassroom] = useState<ClassroomDashboardDTO | null>(null);
@@ -168,7 +169,7 @@ export function AdminOverview({ onBack }: { onBack: () => void }) {
                         <CardDescription className="dark:text-zinc-400">All registered instructors</CardDescription>
                     </CardHeader>
                     <CardContent className="p-0">
-                        <ScrollArea className="h-[400px]">
+                        <ScrollArea className="h-100">
                             <div className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
                                 {data.allMentors.map((mentor: MentorDTO) => (
                                     <div key={mentor.id} className="p-4 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors group">
@@ -210,7 +211,7 @@ export function AdminOverview({ onBack }: { onBack: () => void }) {
                         <CardDescription className="dark:text-zinc-400">All active classes across the platform</CardDescription>
                     </CardHeader>
                     <CardContent className="p-0">
-                        <ScrollArea className="h-[400px]">
+                        <ScrollArea className="h-100">
                             <div className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
                                 {data.allClassrooms.map((cls: ClassroomDashboardDTO) => (
                                     <div key={cls.classroomId} className="p-4 flex flex-col gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors group">
