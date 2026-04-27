@@ -44,7 +44,7 @@ export function AdminOverview({ onBack }: { onBack: () => void }) {
 
     useEffect(() => { void fetchAdminData(); }, []);
 
-    // --- SUPERPOWER HANDLERS ---
+    // SUPERPOWER HANDLERS
     const handleForceSync = async () => {
         setIsSyncing(true);
         try {
